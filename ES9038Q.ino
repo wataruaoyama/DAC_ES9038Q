@@ -99,15 +99,15 @@ void setup() {
   initES9038Q();  // ES9038Q2Mを初期設定
 //  Serial.println("initES9038Q");
 //  delay(20);
-  digitalWrite(LED, 0);
+  //digitalWrite(LED, 0);
   initOledDisplay();  // OLEDディスプレイの初期化
   delay(2000);
 }
 
 void loop() {
   uint8_t jumperValue = jumperState();
-  uint8_t inputMode = readInputSelection();
-  uint8_t chipID = readChipID();
+  uint8_t inputMode = i2cReadRegister(ES9038Q, 96);
+  uint8_t chipID = i2cReadRegister(ES9038Q, 64);
   int fs = detectFS();
 
   inputSelect(jumperValue);
@@ -141,7 +141,7 @@ void initES9038Q() {
   Wire.write(0);
   Wire.write(0x00); // MCLK = XI(100MHz)に設定
   // Register 1: Iput Selection レジスタ
-  Wire.write(0xCC); // default
+  Wire.write(0xCC); // 
   // Register 2: Mixing,Serial Data and Automute Configurationレジスタ
   Wire.write(0x34); // default
   // Register 3: SPDIF Configuration レジスタ
@@ -174,10 +174,11 @@ void initES9038Q() {
   Wire.write(0x00);   // Volume2 レジスタを"0x00"（出力レベル最大）に設定
   Wire.endTransmission();
 
-  Wire.beginTransmission(ES9038Q);
-  Wire.write(21);   // GPIO Input Selection レジスタを指定
-  Wire.write(0x50); // GPIO1,GPIO2ともSPDIFを選択
-  Wire.endTransmission();
+//  Wire.beginTransmission(ES9038Q);
+//  Wire.write(21);   // GPIO Input Selection レジスタを指定
+//  Wire.write(0x50); // GPIO1,GPIO2ともSPDIFを選択
+//  Wire.endTransmission();
+  i2cWriteRegister(ES9038Q, 21, 0x50);
 
   /*
      JP8,JP9で歪補正係数とDPLL bandwidhtを変更する。
@@ -192,10 +193,7 @@ void initES9038Q() {
     thdCompensation(0x0000, 0x0000, 0x00);
   }
   else if ((thdAndDpllBandwidth == 0x08) or (thdAndDpllBandwidth == 0x00)) {
-    Wire.beginTransmission(ES9038Q);
-    Wire.write(12);
-    Wire.write(0x1F);
-    Wire.endTransmission();
+    i2cWriteRegister(ES9038Q, 12, 0x1F);
   }
 }
 
@@ -217,30 +215,22 @@ void initOledDisplay() {
   display.display();
 }
 
-uint8_t readInputSelection() {
-  uint8_t n;
-  Wire.beginTransmission(ES9038Q);
-  Wire.write(96);
-  Wire.endTransmission();
-  Wire.requestFrom(ES9038Q, 1);
-  return (n = Wire.read());
-}
-
 void inputSelect(uint8_t input) {
   input &= 0x03;
-  Wire.beginTransmission(ES9038Q);
-  Wire.write(11);
-  if (input == 0x03)
-    Wire.write(0x00);
-  else if (input == 0x01)
-    Wire.write(0x30);
-  else if (input == 0x02)
-    Wire.write(0x40);
-  else
-    Wire.write(0x00);
-  Wire.endTransmission();
 //    Serial.print("Input =  ");
 //    Serial.println(input,HEX);
+  if (input == 0x01) {
+    i2cWriteRegister(ES9038Q, 11, 0x30);
+    i2cWriteRegister(ES9038Q, 1, 0xC1);
+  }
+  else if (input == 0x02) {
+    i2cWriteRegister(ES9038Q, 11, 0x40);
+    i2cWriteRegister(ES9038Q, 1, 0xC1);
+  }
+  else if (input == 0x03) {
+    i2cWriteRegister(ES9038Q, 11, 0x00);
+    i2cWriteRegister(ES9038Q, 1, 0xCC);
+  }
 }
 
 /*
@@ -385,26 +375,6 @@ void volumeCtrl() {
 //  Serial.println(vin);
 }
 
-uint8_t readVolumeValue() {
-  uint8_t value;
-  Wire.beginTransmission(ES9038Q);
-  Wire.write(15);
-  Wire.endTransmission();
-  Wire.requestFrom(ES9038Q, 1);
-  return (value = Wire.read());
-}
-
-uint8_t readChipID() {
-  uint8_t chipID;
-  Wire.beginTransmission(ES9038Q);
-  Wire.write(64);   // Chip ID and Status レジスタを指定
-  Wire.endTransmission();
-  Wire.requestFrom(ES9038Q, 1);
-  return (chipID = Wire.read());
-  //  Serial.print("Chip ID = ");
-  //  Serial.println(chipID);
-}
-
 /* 表示器への出力　*/
 void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) {
   //  Serial.print("Input Mode = ");
@@ -415,7 +385,7 @@ void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) 
   displayOledFilter(jumperValue, inputMode);
   displayOledPlayMode(inputMode);
   displayOledInput(inputMode, jumperValue);
-  uint8_t vol = readVolumeValue();
+  uint8_t vol = i2cReadRegister(ES9038Q, 15);//readVolumeValue();
 //  Serial.print("vol = ");
 //  Serial.println(vol);
   displayOledVolume(vol);
@@ -515,4 +485,19 @@ void displayOledLockStatus(uint8_t lockStatus) {
   display.setCursor(20, 26);
   if (lockStatus == 0x00) display.println(unlocked);
   //  else if (lockStatus == 0x01) display.println(locked);
+}
+
+uint8_t i2cReadRegister(uint8_t sladr, uint8_t regadr){
+  Wire.beginTransmission(sladr);
+  Wire.write(regadr);
+  Wire.endTransmission();
+  Wire.requestFrom(sladr, 1);
+  return Wire.read();
+}
+
+uint8_t i2cWriteRegister(uint8_t sladr, uint8_t regadr, uint8_t wdata){
+  Wire.beginTransmission(sladr);
+  Wire.write(regadr);
+  Wire.write(wdata);
+  Wire.endTransmission();
 }
