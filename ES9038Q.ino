@@ -64,7 +64,6 @@ char unlocked[] = "Unlocked";
 
 int vbuf = 0;
 uint8_t jumperPins[] = {3, 4, 5, 6, 7, 9, 10};
-uint8_t inputMode;
 //126x64pixel SSD1306 OLED
 //Adafruit_SSD1306 display(128, 64, &Wire, -1);
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /*SCL, SDA,*/ /* reset=*/ U8X8_PIN_NONE);
@@ -109,12 +108,12 @@ void loop() {
   uint8_t jumperValue = jumperState();
   uint8_t inputMode = i2cReadRegister(ES9038Q, 96);
   uint8_t chipID = i2cReadRegister(ES9038Q, 64);
-  int fs = detectFS();
+  int fs;// = detectFS();
 
   inputSelect(jumperValue);
   filterSelect(jumperValue);
   volumeCtrl();
-  messageOut(jumperValue, inputMode, fs, chipID);
+  messageOut(jumperValue, inputMode, detectFS(), chipID);
 
   /*
      Atmega328Pをパワーダウンモードに設定
@@ -132,7 +131,7 @@ void loop() {
     sleep_cpu();  // スリープ実行
   }
 
-  delay(50);
+  delay(30);
 
 }
 /* ES9038Q2Mのレジスタの初期化 */
@@ -379,47 +378,25 @@ void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) 
   //  Serial.print("Input Mode = ");
   //  Serial.println(inputMode,HEX);
   u8g2.clearBuffer();
-  displayOledFSR(fs, inputMode);
-//  displayOledLockStatus(chipID);
+  u8g2.setFont(u8g2_font_helvR08_tr);
+  displayOledInput(inputMode, jumperValue);
+  displayOledPlayMode(inputMode);
+  float vol = i2cReadRegister(ES9038Q, 15);
+  displayOledVolume(vol);
   displayOledFilter(jumperValue, inputMode);
-//  displayOledPlayMode(inputMode);
-//  displayOledInput(inputMode, jumperValue);
-  uint8_t vol = i2cReadRegister(ES9038Q, 15);//readVolumeValue();
 //  Serial.print("vol = ");
 //  Serial.println(vol);
-//  displayOledVolume(vol);
+//  displayOledLockStatus(chipID);
+  u8g2.setFont(u8g2_font_helvR24_tr);
+  displayOledFSR(fs, inputMode);
   u8g2.sendBuffer();
 }
 
 /* サンプリング周波数の表示 */
-//void displayOledFSR(int FSR, uint8_t pm) {
-//  display.setTextSize(2);
-//  display.setCursor(30, 26);
-//  if (FSR == 32) display.println(fs32);
-//  else if (FSR == 44) display.println(fs44);
-//  else if (FSR == 48) display.println(fs48);
-//  else if (FSR == 88) display.println(fs88);
-//  else if (FSR == 96) display.println(fs96);
-//  else if (FSR == 176) {
-//    if (pm == 0x0A) display.println(fs282);
-//    else display.println(fs176);
-//  }
-//  else if (FSR == 192) display.println(fs192);
-//  else if (FSR == 352) {
-//    if (pm == 0x0A) display.println(fs564);
-//    else display.println(fs352);
-//  }
-//  else if (FSR == 384) display.println(fs384);
-//  else if (FSR == 282) display.println(fs282);
-//  else if (FSR == 564) display.println(fs564);
-//  else if (FSR == 1128) display.println(fs1128);
-//  else if (FSR == 2256) display.println(fs2256);
-//  else display.println(nofs);
-//}
-
 void displayOledFSR(int FSR, uint8_t pm) {
   uint8_t x;
-  u8g2.setFont(u8g2_font_fur30_tr);
+//  u8g2.setFont(u8g2_font_helvR24_tr);
+//  u8g2.setFont(u8g2_font_fur30_tr);
   if (FSR == 32) {
     x = u8g2.getStrWidth(fs32);
     u8g2.drawStr(64-(x/2), 42, fs32);
@@ -494,9 +471,7 @@ void displayOledFSR(int FSR, uint8_t pm) {
 void displayOledFilter(uint8_t fil, uint8_t pm) {
   uint8_t x;
   fil &= 0x70;
-  u8g2.setFont(u8g2_font_helvR08_tr);
-//  display.setTextSize(1);
-//  display.setCursor(0, 56);
+//  u8g2.setFont(u8g2_font_helvR08_tr);
   if ((pm == 0x02) || (pm == 0x04)) {
     if ((fil == 0x70) || (fil == 0x00)) {
       x = u8g2.getStrWidth(apodiz);
@@ -539,43 +514,48 @@ void displayOledFilter(uint8_t fil, uint8_t pm) {
 
 /* 再生モードの表示 */
 void displayOledPlayMode(uint8_t pm) {
-//  display.setTextSize(2);
-//  display.setCursor(0, 0);
-//  if (pm == 0x0A) display.println(dop);
-//  else if (pm == 0x0C) display.println(dop);
-//  else if (pm == 0x02) display.println(pcm);
-//  else if (pm == 0x01) display.println(dsd);
-//  else if (pm == 0x04) display.println(pcm);
+  uint8_t x;
+//  u8g2.setFont(u8g2_font_helvR08_tr);
+  if (pm == 0x0A) {
+      x = u8g2.getStrWidth(dop);
+      u8g2.drawStr(64-(x/2), 8, dop);
+  }
+  else if (pm == 0x0C) {
+      x = u8g2.getStrWidth(dop);
+      u8g2.drawStr(64-(x/2), 8, dop);
+  }
+  else if (pm == 0x02) {
+      x = u8g2.getStrWidth(pcm);
+      u8g2.drawStr(64-(x/2), 8, pcm);
+  }
+  else if (pm == 0x01) {
+      x = u8g2.getStrWidth(dsd);
+      u8g2.drawStr(64-(x/2), 8, dsd);
+  }
+  else if (pm == 0x04) {
+      x = u8g2.getStrWidth(pcm);
+      u8g2.drawStr(64-(x/2), 8, pcm);
+  }
 }
 
-void displayOledVolume(uint8_t vol) {
-//  uint8_t value = vol / 2;
-//  uint8_t decimalPart = vol % 2;
-//  //  Serial.print("VLEVEL=");
-//  //  Serial.println(value);
-//  char buf[8];
-//  snprintf(buf, 8, "%d", value);
-//  display.setTextSize(1);
-//  display.setCursor(85, 4);
-//  display.print(buf);
-//  if (decimalPart == 0) {
-//    display.print(".0");
-//  } else {
-//    display.print(".5");    
-//  }
-//  display.println("dB");
+void displayOledVolume(float vol) {
+  float value = vol / 2;
+  char buf[8];
+  uint8_t n;
+  dtostrf(value,5,1,buf); // 数値を文字列に変換
+  n = u8g2.drawStr(85, 8, buf); // 文字列の幅を取得
+  u8g2.drawStr(85+n, 8, "dB");
 }
 
 void displayOledInput(uint8_t inputSelection, uint8_t input) {
-//  inputSelection &= 0x06;
-//  input &= 0x03;
-//  display.setTextSize(1);
-//  display.setCursor(52, 4);
-//  if (input == 0x03) display.println(i2s);
-//  if ( inputSelection == 0x04 ) {
-//    if (input == 0x01) display.println(coa);
-//    else if (input == 0x02) display.println(opt);
-//  }
+  inputSelection &= 0x06;
+  input &= 0x03;
+//  u8g2.setFont(u8g2_font_helvR08_tr);
+  if (input == 0x03) u8g2.drawStr(0, 8, i2s);
+  if ( inputSelection == 0x04 ) {
+    if (input == 0x01) u8g2.drawStr(0, 8, coa);
+    else if (input == 0x02) u8g2.drawStr(0, 8, opt);
+  }
 }
 
 /* DPLLのアンロック状態の表示 */
