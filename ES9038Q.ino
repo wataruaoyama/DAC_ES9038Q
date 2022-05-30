@@ -102,7 +102,8 @@ void loop() {
   uint8_t inputMode = i2cReadRegister(ES9038Q, 96);
   uint8_t chipID = i2cReadRegister(ES9038Q, 64);
   int fs;// = detectFS();
-
+  uint8_t x;
+  
   inputSelect(jumperValue);
   filterSelect(jumperValue);
   volumeCtrl();
@@ -114,11 +115,12 @@ void loop() {
      再度パワーダウンモードに入る。
   */
   if (digitalRead(SLEEP) == 0) {
-//    display.clearDisplay();
-//    display.setTextSize(2);
-//    display.setCursor(0, 10);
-//    display.println("SLEEP MODE");
-//    display.display();
+
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_helvB12_tr);
+    x = u8g2.getStrWidth("SLEEP MODE");
+    u8g2.drawStr(64-(x/2),40,"SLEEP MODE"); 
+    u8g2.sendBuffer();     
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // スリープモードに設定
     sleep_enable(); // スリープ機能の有効化
     sleep_cpu();  // スリープ実行
@@ -379,7 +381,7 @@ void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) 
   displayOledFilter(jumperValue, inputMode);
 //  Serial.print("vol = ");
 //  Serial.println(vol);
-//  displayOledLockStatus(chipID);
+  displayOledLockStatus(chipID);
   u8g2.setFont(u8g2_font_helvR24_tr);
   displayOledFSR(fs, inputMode);
   u8g2.sendBuffer();
@@ -553,12 +555,24 @@ void displayOledInput(uint8_t inputSelection, uint8_t input) {
 
 /* DPLLのアンロック状態の表示 */
 void displayOledLockStatus(uint8_t lockStatus) {
-//  lockStatus &= 0x01;
+  uint8_t x;
+  lockStatus &= 0x01;
+//  u8g2.setFont(u8g2_font_helvR24_tr);
+  u8g2.setFont(u8g2_font_helvB12_tr);
+  if (lockStatus == 0x00) {
+    x = u8g2.getStrWidth(unlocked);
+    u8g2.drawStr(64-(x/2), 36, unlocked);
+  }
+//  else if (lockStatus == 0x01) {
+//    x = u8g2.getStrWidth(locked);
+//    u8g2.drawStr(64-(x/2), 42, locked);
+//  }
+}
 //  display.setTextSize(2);
 //  display.setCursor(20, 26);
 //  if (lockStatus == 0x00) display.println(unlocked);
 //  //  else if (lockStatus == 0x01) display.println(locked);
-}
+//}
 
 uint8_t i2cReadRegister(uint8_t sladr, uint8_t regadr){
   Wire.beginTransmission(sladr);
