@@ -19,8 +19,6 @@
 #include <Wire.h>
 #include <avr/sleep.h>
 #include <U8g2lib.h>
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_SSD1306.h>
 
 #define ES9038Q 0x48
 #define master 2
@@ -64,8 +62,7 @@ char unlocked[] = "Unlocked";
 
 int vbuf = 0;
 uint8_t jumperPins[] = {3, 4, 5, 6, 7, 9, 10};
-//126x64pixel SSD1306 OLED
-//Adafruit_SSD1306 display(128, 64, &Wire, -1);
+
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /*SCL, SDA,*/ /* reset=*/ U8X8_PIN_NONE);
 
 void setup() {
@@ -80,13 +77,9 @@ void setup() {
 
   Wire.begin();
   Wire.setClock(400000);  // SCLクロックを400kHzに設定
-  // SSD1306のスレーブアドレスは0x3C
-//  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-//  display.clearDisplay();
-//  display.display();
   u8g2.begin();
   u8g2.clearBuffer();
-  Serial.begin(9600);
+//  Serial.begin(9600);
   delay(200);
   digitalWrite(resetES9038Q, HIGH); // リセット解除
 
@@ -479,36 +472,36 @@ void displayOledFilter(uint8_t fil, uint8_t pm) {
     }
     else if (fil == 0x60) {
       x = u8g2.getStrWidth(brick);
-      u8g2.drawStr(64-(x/2), 60, brick); 
+      u8g2.drawStr(64-(x/2), 63, brick); 
     }
     else if (fil == 0x50) {
       x = u8g2.getStrWidth(corrected);
-      u8g2.drawStr(64-(x/2), 60, corrected); 
+      u8g2.drawStr(64-(x/2), 63, corrected); 
     }
     else if (fil == 0x40) {
       x = u8g2.getStrWidth(min_phase_slow);
-      u8g2.drawStr(64-(x/2), 60, min_phase_slow); 
+      u8g2.drawStr(64-(x/2), 63, min_phase_slow); 
     }
     else if (fil == 0x30) {
       x = u8g2.getStrWidth(min_phase_fast);
-      u8g2.drawStr(64-(x/2), 60, min_phase_fast); 
+      u8g2.drawStr(64-(x/2), 63, min_phase_fast); 
     }
     else if (fil == 0x20) {
       x = u8g2.getStrWidth(brick);
-      u8g2.drawStr(64-(x/2), 60, lin_phase_slow); 
+      u8g2.drawStr(64-(x/2), 63, lin_phase_slow); 
     }
     else if (fil == 0x10) {
       x = u8g2.getStrWidth(lin_phase_fast);
-      u8g2.drawStr(64-(x/2), 60, lin_phase_fast); 
+      u8g2.drawStr(64-(x/2), 63, lin_phase_fast); 
     }
     else {
       x = u8g2.getStrWidth(apodiz);
-      u8g2.drawStr(64-(x/2), 60, apodiz); 
+      u8g2.drawStr(64-(x/2), 63, apodiz); 
     }
   }
   else if ((pm == 0x01) || (pm == 0x0A) || (pm == 0x0C)) {
       x = u8g2.getStrWidth(dsdfil);
-      u8g2.drawStr(64-(x/2), 60, dsdfil);
+      u8g2.drawStr(64-(x/2), 63, dsdfil);
   }
 }
 
@@ -540,21 +533,21 @@ void displayOledPlayMode(uint8_t pm) {
 
 void displayOledVolume(float vol) {
   float value = vol / 2;
-  char buf[8];
+  char buf[10];
   uint8_t n;
   dtostrf(value,5,1,buf); // 数値を文字列に変換
-  n = u8g2.drawStr(85, 8, buf); // 文字列の幅を取得
-  u8g2.drawStr(85+n, 8, "dB");
+  n = u8g2.drawStr(88, 8, buf); // 文字列の幅を取得
+  u8g2.drawStr(88+n, 8, "dB");
 }
 
 void displayOledInput(uint8_t inputSelection, uint8_t input) {
   inputSelection &= 0x06;
   input &= 0x03;
 //  u8g2.setFont(u8g2_font_helvR08_tr);
-  if (input == 0x03) u8g2.drawStr(0, 8, i2s);
+  if (input == 0x03) u8g2.drawStr(10, 8, i2s);
   if ( inputSelection == 0x04 ) {
-    if (input == 0x01) u8g2.drawStr(0, 8, coa);
-    else if (input == 0x02) u8g2.drawStr(0, 8, opt);
+    if (input == 0x01) u8g2.drawStr(10, 8, coa);
+    else if (input == 0x02) u8g2.drawStr(10, 8, opt);
   }
 }
 
