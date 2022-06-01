@@ -115,7 +115,6 @@ void loop() {
      再度パワーダウンモードに入る。
   */
   if (digitalRead(SLEEP) == 0) {
-
     u8g2.clearBuffer();
     u8g2.setFont(u8g2_font_helvB12_tr);
     x = u8g2.getStrWidth("SLEEP MODE");
@@ -125,10 +124,9 @@ void loop() {
     sleep_enable(); // スリープ機能の有効化
     sleep_cpu();  // スリープ実行
   }
-
   delay(30);
-
 }
+
 /* ES9038Q2Mのレジスタの初期化 */
 void initES9038Q() {
   Wire.beginTransmission(ES9038Q);
@@ -370,8 +368,8 @@ void volumeCtrl() {
 
 /* 表示器への出力　*/
 void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) {
-  //  Serial.print("Input Mode = ");
-  //  Serial.println(inputMode,HEX);
+//  Serial.print("Input Mode = ");
+//  Serial.println(inputMode,HEX);
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_helvR08_tr);
   displayOledInput(inputMode, jumperValue);
@@ -390,147 +388,66 @@ void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) 
 /* サンプリング周波数の表示 */
 void displayOledFSR(int FSR, uint8_t pm) {
   uint8_t x;
+  char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR24_tr);
 //  u8g2.setFont(u8g2_font_fur30_tr);
-  if (FSR == 32) {
-    x = u8g2.getStrWidth(fs32);
-    u8g2.drawStr(64-(x/2), 42, fs32);
-    }
-  else if (FSR == 44) {
-    x = u8g2.getStrWidth(fs44);
-    u8g2.drawStr(64-(x/2), 42, fs44);
-  }
-  else if (FSR == 48) {
-    x = u8g2.getStrWidth(fs48);
-    u8g2.drawStr(64-(x/2), 42, fs48);
-  }
-  else if (FSR == 88) {
-    x = u8g2.getStrWidth(fs88);
-    u8g2.drawStr(64-(x/2), 42, fs88);
-  }
-  else if (FSR == 96) {
-    x = u8g2.getStrWidth(fs96);
-    u8g2.drawStr(64-(x/2), 42, fs96);
-  }
+  if (FSR == 32) strcpy(message_buffer, fs32);
+  else if (FSR == 44) strcpy(message_buffer, fs44);
+  else if (FSR == 48) strcpy(message_buffer, fs48);
+  else if (FSR == 88) strcpy(message_buffer, fs88);
+  else if (FSR == 96) strcpy(message_buffer, fs96);
   else if (FSR == 176) {
-    if (pm == 0x0A) {
-      x = u8g2.getStrWidth(fs282);
-      u8g2.drawStr(64-(x/2), 42, fs282);
-    }
-    else {
-      x = u8g2.getStrWidth(fs176);
-      u8g2.drawStr(64-(x/2), 42, fs176);
-    }
+    if (pm == 0x0A) strcpy(message_buffer, fs282);
+    else strcpy(message_buffer, fs176);
   }
-  else if (FSR == 192) {
-    x = u8g2.getStrWidth(fs192);
-    u8g2.drawStr(64-(x/2), 42, fs192);
-  }
+  else if (FSR == 192) strcpy(message_buffer, fs192);
   else if (FSR == 352) {
-    if (pm == 0x0A) {
-      x = u8g2.getStrWidth(fs564);
-      u8g2.drawStr(64-(x/2), 42, fs564);
-    }
-    else {
-      x = u8g2.getStrWidth(fs352);
-      u8g2.drawStr(64-(x/2), 42, fs352);
-    }
+    if (pm == 0x0A) strcpy(message_buffer, fs564);
+    else strcpy(message_buffer, fs352);
   }
-  else if (FSR == 384) {
-    x = u8g2.getStrWidth(fs384);
-    u8g2.drawStr(64-(x/2), 42, fs384);    
-  }
-  else if (FSR == 282) {
-    x = u8g2.getStrWidth(fs282);
-    u8g2.drawStr(64-(x/2), 42, fs282);    
-  }
-  else if (FSR == 564) {
-    x = u8g2.getStrWidth(fs564);
-    u8g2.drawStr(64-(x/2), 42, fs564);    
-  }
-  else if (FSR == 1128) {
-    x = u8g2.getStrWidth(fs1128);
-    u8g2.drawStr(64-(x/2), 42, fs1128);    
-  }
-  else if (FSR == 2256) {
-    x = u8g2.getStrWidth(fs2256);
-    u8g2.drawStr(64-(x/2), 42, fs2256);    
-  }
-  else {
-    x = u8g2.getStrWidth(nofs);
-    u8g2.drawStr(64-(x/2), 42, nofs);    
-  }
+  else if (FSR == 384) strcpy(message_buffer, fs384);
+  else if (FSR == 282) strcpy(message_buffer, fs282);
+  else if (FSR == 564) strcpy(message_buffer, fs564);
+  else if (FSR == 1128) strcpy(message_buffer, fs1128);
+  else if (FSR == 2256) strcpy(message_buffer, fs2256);
+  else strcpy(message_buffer, nofs);
+  x = u8g2.getStrWidth(message_buffer);
+  u8g2.drawStr(64-(x/2), 42, message_buffer);    
 }
 
 /* デジタル・フィルタ特性の表示 */
 void displayOledFilter(uint8_t fil, uint8_t pm) {
   uint8_t x;
   fil &= 0x70;
+  char message_buffer[20];
 //  u8g2.setFont(u8g2_font_helvR08_tr);
   if ((pm == 0x02) || (pm == 0x04)) {
-    if ((fil == 0x70) || (fil == 0x00)) {
-      x = u8g2.getStrWidth(apodiz);
-      u8g2.drawStr(64-(x/2), 60, apodiz); 
-    }
-    else if (fil == 0x60) {
-      x = u8g2.getStrWidth(brick);
-      u8g2.drawStr(64-(x/2), 63, brick); 
-    }
-    else if (fil == 0x50) {
-      x = u8g2.getStrWidth(corrected);
-      u8g2.drawStr(64-(x/2), 63, corrected); 
-    }
-    else if (fil == 0x40) {
-      x = u8g2.getStrWidth(min_phase_slow);
-      u8g2.drawStr(64-(x/2), 63, min_phase_slow); 
-    }
-    else if (fil == 0x30) {
-      x = u8g2.getStrWidth(min_phase_fast);
-      u8g2.drawStr(64-(x/2), 63, min_phase_fast); 
-    }
-    else if (fil == 0x20) {
-      x = u8g2.getStrWidth(brick);
-      u8g2.drawStr(64-(x/2), 63, lin_phase_slow); 
-    }
-    else if (fil == 0x10) {
-      x = u8g2.getStrWidth(lin_phase_fast);
-      u8g2.drawStr(64-(x/2), 63, lin_phase_fast); 
-    }
-    else {
-      x = u8g2.getStrWidth(apodiz);
-      u8g2.drawStr(64-(x/2), 63, apodiz); 
-    }
+    if ((fil == 0x70) || (fil == 0x00)) strcpy(message_buffer, (apodiz));
+    else if (fil == 0x60) strcpy(message_buffer, brick);
+    else if (fil == 0x50) strcpy(message_buffer, corrected);
+    else if (fil == 0x40) strcpy(message_buffer, min_phase_slow);
+    else if (fil == 0x30) strcpy(message_buffer, min_phase_fast);
+    else if (fil == 0x20) strcpy(message_buffer, lin_phase_slow);
+    else if (fil == 0x10) strcpy(message_buffer, lin_phase_fast);
+    else strcpy(message_buffer, (apodiz));
   }
-  else if ((pm == 0x01) || (pm == 0x0A) || (pm == 0x0C)) {
-      x = u8g2.getStrWidth(dsdfil);
-      u8g2.drawStr(64-(x/2), 63, dsdfil);
-  }
+  else if ((pm == 0x01) || (pm == 0x0A) || (pm == 0x0C)) strcpy(message_buffer, (dsdfil));
+  x = u8g2.getStrWidth(message_buffer);
+  u8g2.drawStr(64-(x/2), 63, message_buffer); 
 }
 
 /* 再生モードの表示 */
 void displayOledPlayMode(uint8_t pm) {
   uint8_t x;
+  char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR08_tr);
-  if (pm == 0x0A) {
-      x = u8g2.getStrWidth(dop);
-      u8g2.drawStr(64-(x/2), 8, dop);
-  }
-  else if (pm == 0x0C) {
-      x = u8g2.getStrWidth(dop);
-      u8g2.drawStr(64-(x/2), 8, dop);
-  }
-  else if (pm == 0x02) {
-      x = u8g2.getStrWidth(pcm);
-      u8g2.drawStr(64-(x/2), 8, pcm);
-  }
-  else if (pm == 0x01) {
-      x = u8g2.getStrWidth(dsd);
-      u8g2.drawStr(64-(x/2), 8, dsd);
-  }
-  else if (pm == 0x04) {
-      x = u8g2.getStrWidth(pcm);
-      u8g2.drawStr(64-(x/2), 8, pcm);
-  }
+  if (pm == 0x0A) strcpy(message_buffer, dop);
+  else if (pm == 0x0C) strcpy(message_buffer, dop);
+  else if (pm == 0x02) strcpy(message_buffer, pcm);
+  else if (pm == 0x01) strcpy(message_buffer, dsd);
+  else if (pm == 0x04) strcpy(message_buffer, pcm);
+  x = u8g2.getStrWidth(message_buffer);
+  u8g2.drawStr(64-(x/2), 8, message_buffer);
 }
 
 void displayOledVolume(float vol) {
@@ -563,16 +480,7 @@ void displayOledLockStatus(uint8_t lockStatus) {
     x = u8g2.getStrWidth(unlocked);
     u8g2.drawStr(64-(x/2), 36, unlocked);
   }
-//  else if (lockStatus == 0x01) {
-//    x = u8g2.getStrWidth(locked);
-//    u8g2.drawStr(64-(x/2), 42, locked);
-//  }
 }
-//  display.setTextSize(2);
-//  display.setCursor(20, 26);
-//  if (lockStatus == 0x00) display.println(unlocked);
-//  //  else if (lockStatus == 0x01) display.println(locked);
-//}
 
 uint8_t i2cReadRegister(uint8_t sladr, uint8_t regadr){
   Wire.beginTransmission(sladr);
