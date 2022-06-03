@@ -18,6 +18,7 @@
 */
 #include <Wire.h>
 #include <avr/sleep.h>
+#include <avr/pgmspace.h>
 #include <U8g2lib.h>
 
 #define ES9038Q 0x48
@@ -60,7 +61,7 @@ char opt[] = "OPT";
 char locked[] = "Locked";
 char unlocked[] = "Unlocked";
 
-int vbuf = 0;
+//int vbuf = 0;
 uint8_t jumperPins[] = {3, 4, 5, 6, 7, 9, 10};
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /*SCL, SDA,*/ /* reset=*/ U8X8_PIN_NONE);
@@ -347,6 +348,7 @@ void thdCompensation(int16_t c2, int16_t c3, int8_t en) {
 
 /* アッテネータ・レベルの設定 */
 void volumeCtrl() {
+  static int vbuf = 0;
   int vin = analogRead(VOL);
   vin = vin >> 3;
   if ( vin != vbuf ) {
