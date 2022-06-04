@@ -28,38 +28,36 @@
 #define resetES9038Q A3
 #define VOL A0
 
-char noinput[] = "NO INPUT";
-char i2s[] = "I2S ";
-char dop[] = "DoP ";
-char pcm[] = "PCM ";
-char dsd[] = "DSD ";
-char fs32[] = "32";
-char fs44[] = "44.1";
-char fs48[] = "48";
-char fs88[] = "88.2";
-char fs96[] = "96";
-char fs176[] = "176.4";
-char fs192[] = "192";
-char fs352[] = "352.8";
-char fs384[] = "384";
-char fs282[] = "2.8";
-char fs564[] = "5.6";
-char fs1128[] = "11.2";
-char fs2256[] = "22.4";
-char dsdfil[] = "DSD Filter";
-char nofs[] = "";
-char apodiz[] = "Apodizing Fast";
-char brick[] = "Brick Wall";
-char corrected[] = "Corrected Min. Phase";
-char min_phase_slow[] = "Minimum Phase Slow";
-char min_phase_fast[] = "Minimum Phase Fast";
-char lin_phase_slow[] = "Linear Phase Slow";
-char lin_phase_fast[] = "Linear Phase Fast";
-char nofil[] = "";
-char coa[] = "COA";
-char opt[] = "OPT";
-char locked[] = "Locked";
-char unlocked[] = "Unlocked";
+const char i2s[] PROGMEM = "I2S";
+const char dop[] PROGMEM = "DoP";
+const char pcm[] PROGMEM = "PCM";
+const char dsd[] PROGMEM = "DSD";
+const char fs32[] PROGMEM = "32";
+const char fs44[] PROGMEM = "44.1";
+const char fs48[] PROGMEM = "48";
+const char fs88[] PROGMEM = "88.2";
+const char fs96[] PROGMEM = "96";
+const char fs176[] PROGMEM = "176.4";
+const char fs192[] PROGMEM = "192";
+const char fs352[] PROGMEM = "352.8";
+const char fs384[] PROGMEM = "384";
+const char fs282[] PROGMEM = "2.8";
+const char fs564[] PROGMEM = "5.6";
+const char fs1128[] PROGMEM = "11.2";
+const char fs2256[] PROGMEM = "22.4";
+const char dsdfil[] PROGMEM = "DSD Filter";
+const char nofs[] = "";
+const char apodiz[] PROGMEM = "Apodizing Fast";
+const char brick[] PROGMEM = "Brick Wall";
+const char corrected[] PROGMEM = "Corrected Min. Phase";
+const char min_phase_slow[] PROGMEM = "Minimum Phase Slow";
+const char min_phase_fast[] PROGMEM = "Minimum Phase Fast";
+const char lin_phase_slow[] PROGMEM = "Linear Phase Slow";
+const char lin_phase_fast[] PROGMEM = "Linear Phase Fast";
+const char coa[] PROGMEM = "COA";
+const char opt[] PROGMEM = "OPT";
+const char locked[] PROGMEM = "Locked";
+const char unlocked[] PROGMEM = "Unlocked";
 
 //int vbuf = 0;
 uint8_t jumperPins[] = {3, 4, 5, 6, 7, 9, 10};
@@ -393,28 +391,28 @@ void displayOledFSR(int FSR, uint8_t pm) {
   char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR24_tr);
 //  u8g2.setFont(u8g2_font_fur30_tr);
-  if (FSR == 32) strcpy(message_buffer, fs32);
-  else if (FSR == 44) strcpy(message_buffer, fs44);
-  else if (FSR == 48) strcpy(message_buffer, fs48);
-  else if (FSR == 88) strcpy(message_buffer, fs88);
-  else if (FSR == 96) strcpy(message_buffer, fs96);
+  if (FSR == 32) strcpy_P(message_buffer, fs32);
+  else if (FSR == 44) strcpy_P(message_buffer, fs44);
+  else if (FSR == 48) strcpy_P(message_buffer, fs48);
+  else if (FSR == 88) strcpy_P(message_buffer, fs88);
+  else if (FSR == 96) strcpy_P(message_buffer, fs96);
   else if (FSR == 176) {
-    if (pm == 0x0A) strcpy(message_buffer, fs282);
-    else strcpy(message_buffer, fs176);
+    if (pm == 0x0A) strcpy_P(message_buffer, fs282);
+    else strcpy_P(message_buffer, fs176);
   }
-  else if (FSR == 192) strcpy(message_buffer, fs192);
+  else if (FSR == 192) strcpy_P(message_buffer, fs192);
   else if (FSR == 352) {
-    if (pm == 0x0A) strcpy(message_buffer, fs564);
-    else strcpy(message_buffer, fs352);
+    if (pm == 0x0A) strcpy_P(message_buffer, fs564);
+    else strcpy_P(message_buffer, fs352);
   }
-  else if (FSR == 384) strcpy(message_buffer, fs384);
-  else if (FSR == 282) strcpy(message_buffer, fs282);
-  else if (FSR == 564) strcpy(message_buffer, fs564);
-  else if (FSR == 1128) strcpy(message_buffer, fs1128);
-  else if (FSR == 2256) strcpy(message_buffer, fs2256);
-  else strcpy(message_buffer, nofs);
+  else if (FSR == 384) strcpy_P(message_buffer, fs384);
+  else if (FSR == 282) strcpy_P(message_buffer, fs282);
+  else if (FSR == 564) strcpy_P(message_buffer, fs564);
+  else if (FSR == 1128) strcpy_P(message_buffer, fs1128);
+  else if (FSR == 2256) strcpy_P(message_buffer, fs2256);
+  else strcpy_P(message_buffer, nofs);
   x = u8g2.getStrWidth(message_buffer);
-  u8g2.drawStr(64-(x/2), 42, message_buffer);    
+  u8g2.drawStr(64-(x/2), 44, message_buffer);    
 }
 
 /* デジタル・フィルタ特性の表示 */
@@ -424,16 +422,16 @@ void displayOledFilter(uint8_t fil, uint8_t pm) {
   char message_buffer[20];
 //  u8g2.setFont(u8g2_font_helvR08_tr);
   if ((pm == 0x02) || (pm == 0x04)) {
-    if ((fil == 0x70) || (fil == 0x00)) strcpy(message_buffer, (apodiz));
-    else if (fil == 0x60) strcpy(message_buffer, brick);
-    else if (fil == 0x50) strcpy(message_buffer, corrected);
-    else if (fil == 0x40) strcpy(message_buffer, min_phase_slow);
-    else if (fil == 0x30) strcpy(message_buffer, min_phase_fast);
-    else if (fil == 0x20) strcpy(message_buffer, lin_phase_slow);
-    else if (fil == 0x10) strcpy(message_buffer, lin_phase_fast);
-    else strcpy(message_buffer, (apodiz));
+    if ((fil == 0x70) || (fil == 0x00)) strcpy_P(message_buffer, (apodiz));
+    else if (fil == 0x60) strcpy_P(message_buffer, brick);
+    else if (fil == 0x50) strcpy_P(message_buffer, corrected);
+    else if (fil == 0x40) strcpy_P(message_buffer, min_phase_slow);
+    else if (fil == 0x30) strcpy_P(message_buffer, min_phase_fast);
+    else if (fil == 0x20) strcpy_P(message_buffer, lin_phase_slow);
+    else if (fil == 0x10) strcpy_P(message_buffer, lin_phase_fast);
+    else strcpy_P(message_buffer, (apodiz));
   }
-  else if ((pm == 0x01) || (pm == 0x0A) || (pm == 0x0C)) strcpy(message_buffer, (dsdfil));
+  else if ((pm == 0x01) || (pm == 0x0A) || (pm == 0x0C)) strcpy_P(message_buffer, (dsdfil));
   x = u8g2.getStrWidth(message_buffer);
   u8g2.drawStr(64-(x/2), 63, message_buffer); 
 }
@@ -443,11 +441,11 @@ void displayOledPlayMode(uint8_t pm) {
   uint8_t x;
   char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR08_tr);
-  if (pm == 0x0A) strcpy(message_buffer, dop);
-  else if (pm == 0x0C) strcpy(message_buffer, dop);
-  else if (pm == 0x02) strcpy(message_buffer, pcm);
-  else if (pm == 0x01) strcpy(message_buffer, dsd);
-  else if (pm == 0x04) strcpy(message_buffer, pcm);
+  if (pm == 0x0A) strcpy_P(message_buffer, dop);
+  else if (pm == 0x0C) strcpy_P(message_buffer, dop);
+  else if (pm == 0x02) strcpy_P(message_buffer, pcm);
+  else if (pm == 0x01) strcpy_P(message_buffer, dsd);
+  else if (pm == 0x04) strcpy_P(message_buffer, pcm);
   x = u8g2.getStrWidth(message_buffer);
   u8g2.drawStr(64-(x/2), 8, message_buffer);
 }
@@ -464,23 +462,35 @@ void displayOledVolume(float vol) {
 void displayOledInput(uint8_t inputSelection, uint8_t input) {
   inputSelection &= 0x06;
   input &= 0x03;
+  char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR08_tr);
-  if (input == 0x03) u8g2.drawStr(10, 8, i2s);
+  if (input == 0x03) {
+    strcpy_P(message_buffer, i2s);
+    u8g2.drawStr(10, 8, message_buffer);
+  }
   if ( inputSelection == 0x04 ) {
-    if (input == 0x01) u8g2.drawStr(10, 8, coa);
-    else if (input == 0x02) u8g2.drawStr(10, 8, opt);
+    if (input == 0x01) {
+      strcpy_P(message_buffer, coa);
+      u8g2.drawStr(10, 8, message_buffer);
+    }
+    else if (input == 0x02) {
+      strcpy_P(message_buffer, opt);
+      u8g2.drawStr(10, 8, message_buffer);
+    }
   }
 }
 
 /* DPLLのアンロック状態の表示 */
 void displayOledLockStatus(uint8_t lockStatus) {
   uint8_t x;
+  char message_buffer[10];
   lockStatus &= 0x01;
 //  u8g2.setFont(u8g2_font_helvR24_tr);
   u8g2.setFont(u8g2_font_helvB12_tr);
   if (lockStatus == 0x00) {
-    x = u8g2.getStrWidth(unlocked);
-    u8g2.drawStr(64-(x/2), 36, unlocked);
+    strcpy_P(message_buffer, unlocked);
+    x = u8g2.getStrWidth(message_buffer);
+    u8g2.drawStr(64-(x/2), 36, message_buffer);
   }
 }
 
