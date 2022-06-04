@@ -59,7 +59,6 @@ const char opt[] PROGMEM = "OPT";
 const char locked[] PROGMEM = "Locked";
 const char unlocked[] PROGMEM = "Unlocked";
 
-//int vbuf = 0;
 uint8_t jumperPins[] = {3, 4, 5, 6, 7, 9, 10};
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /*SCL, SDA,*/ /* reset=*/ U8X8_PIN_NONE);
@@ -123,7 +122,7 @@ void loop() {
     sleep_enable(); // スリープ機能の有効化
     sleep_cpu();  // スリープ実行
   }
-  delay(30);
+//  delay(30);
 }
 
 /* ES9038Q2Mのレジスタの初期化 */
@@ -387,7 +386,7 @@ void messageOut(uint8_t jumperValue, uint8_t inputMode, int fs, uint8_t chipID) 
 
 /* サンプリング周波数の表示 */
 void displayOledFSR(int FSR, uint8_t pm) {
-  uint8_t x;
+  uint8_t x, y;
   char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR24_tr);
 //  u8g2.setFont(u8g2_font_fur30_tr);
@@ -412,7 +411,8 @@ void displayOledFSR(int FSR, uint8_t pm) {
   else if (FSR == 2256) strcpy_P(message_buffer, fs2256);
   else strcpy_P(message_buffer, nofs);
   x = u8g2.getStrWidth(message_buffer);
-  u8g2.drawStr(64-(x/2), 44, message_buffer);    
+  y = u8g2.getFontAscent();
+  u8g2.drawStr(64-(x/2), 32+(y/2), message_buffer);
 }
 
 /* デジタル・フィルタ特性の表示 */
@@ -462,27 +462,27 @@ void displayOledVolume(float vol) {
 void displayOledInput(uint8_t inputSelection, uint8_t input) {
   inputSelection &= 0x06;
   input &= 0x03;
+  uint8_t y;
   char message_buffer[10];
 //  u8g2.setFont(u8g2_font_helvR08_tr);
   if (input == 0x03) {
     strcpy_P(message_buffer, i2s);
-    u8g2.drawStr(10, 8, message_buffer);
   }
   if ( inputSelection == 0x04 ) {
     if (input == 0x01) {
       strcpy_P(message_buffer, coa);
-      u8g2.drawStr(10, 8, message_buffer);
     }
     else if (input == 0x02) {
       strcpy_P(message_buffer, opt);
-      u8g2.drawStr(10, 8, message_buffer);
     }
   }
+  y = u8g2.getFontAscent();
+  u8g2.drawStr(10, y, message_buffer);
 }
 
 /* DPLLのアンロック状態の表示 */
 void displayOledLockStatus(uint8_t lockStatus) {
-  uint8_t x;
+  uint8_t x, y;
   char message_buffer[10];
   lockStatus &= 0x01;
 //  u8g2.setFont(u8g2_font_helvR24_tr);
@@ -490,7 +490,8 @@ void displayOledLockStatus(uint8_t lockStatus) {
   if (lockStatus == 0x00) {
     strcpy_P(message_buffer, unlocked);
     x = u8g2.getStrWidth(message_buffer);
-    u8g2.drawStr(64-(x/2), 36, message_buffer);
+    y = u8g2.getFontAscent();
+    u8g2.drawStr(64-(x/2), 32+(y/2), message_buffer);
   }
 }
 
